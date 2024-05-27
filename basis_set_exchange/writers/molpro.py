@@ -42,7 +42,8 @@ def write_molpro(basis):
 
     # Uncontract all, and make as generally-contracted as possible
     basis = manip.make_general(basis, False, True)
-    basis = sort.sort_basis(basis, True)
+    # basis = sort.sort_basis(basis, True)
+    basis = sort.sort_basis_only_uncontracted(basis, True)
 
     # Start out with angular momentum type
     types = basis['function_types']

@@ -197,6 +197,51 @@ def sort_shells(shells, use_copy=True):
 
     return [x[0] for x in tmp_sorted]
 
+def sort_shell_only_uncontracted(shell, use_copy=True):
+    """
+    Sort a basis set shell into a standard order (only uncontracted shells are sorted)
+
+    If use_copy is True, the input shells are not modified.
+    """
+
+    if use_copy:
+        shell = copy.deepcopy(shell)
+
+    tmp_c = shell['coefficients']
+    tmp_z = shell['exponents']
+    uncontracted = all(float(c) == 0.0 or float(c) == 1.0 for coefs in tmp_c for c in coefs)
+    if not uncontracted:
+        return shell
+    # Exponents should be in decreasing order
+    zidx = [x for x, y in sorted(enumerate(tmp_z), key=lambda x: -float(x[1]))]
+
+    # cidx = range(len(tmp_c))
+
+    # Collect the exponents and coefficients
+    newexp = [tmp_z[i] for i in zidx]
+    # newcoef = [[tmp_c[i][j] for j in zidx] for i in cidx]
+
+    shell['exponents'] = newexp
+    # shell['coefficients'] = newcoef
+
+    return shell
+
+
+def sort_shells_only_uncontracted(shells, use_copy=True):
+    """
+    Sort a list of basis set shells into a standard order (only uncontracted shells are sorted)
+
+    The order within a shell is by decreasing value of the exponent.
+
+    If use_copy is True, the input shells are not modified.
+    """
+
+    if use_copy:
+        shells = copy.deepcopy(shells)
+
+    # Sort primitives within a shell
+    # (copying already handled above)
+    return [sort_shell_only_uncontracted(sh, False) for sh in shells]
 
 def sort_potentials(potentials, use_copy=True):
     """
@@ -232,6 +277,24 @@ def sort_basis(basis, use_copy=True):
     for k, el in basis['elements'].items():
         if 'electron_shells' in el:
             el['electron_shells'] = sort_shells(el['electron_shells'], False)
+        if 'ecp_potentials' in el:
+            el['ecp_potentials'] = sort_potentials(el['ecp_potentials'], False)
+
+    return sort_basis_dict(basis)
+
+def sort_basis_only_uncontracted(basis, use_copy=True):
+    """
+    Sorts uncontracted primitives into a decreasing order
+
+    If use_copy is True, the input basis set is not modified.
+    """
+
+    if use_copy:
+        basis = copy.deepcopy(basis)
+
+    for k, el in basis['elements'].items():
+        if 'electron_shells' in el:
+            el['electron_shells'] = sort_shells_only_uncontracted(el['electron_shells'], False)
         if 'ecp_potentials' in el:
             el['ecp_potentials'] = sort_potentials(el['ecp_potentials'], False)
 
